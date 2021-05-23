@@ -17,15 +17,14 @@
 #  */
 
 
-
 #!/usr/bin/env python3
 
 from aws_cdk import core
 
-from multipagepdfa2i.multipagepdfa2i_stack import Multipagepdfa2IStack
+from pdfparse.pdfparse_stack import pdfparseStack
 
 
 app = core.App()
-Multipagepdfa2IStack(app, "multipagepdfa2i")
+pdfparseStack(app, "pdfparse")
 
 app.synth()

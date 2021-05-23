@@ -19,6 +19,8 @@
 # -------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------
+# Re-used for development purpose by: Nirav Malsattar (niravpmalsattar@gmail.com)
+
 # ~ ENTER SAGEMAKER AUGMENTED AI WORKFLOW ARN HERE:
 import config as cfg
 from aws_cdk import (
@@ -43,7 +45,7 @@ SAGEMAKER_WORKFLOW_AUGMENTED_AI_ARN_EV = cfg.credentials["hr-workflow-arn"]
 # -------------------------------------------------------------------------------------------
 
 
-class Multipagepdfa2IStack(core.Stack):
+class pdfparseStack(core.Stack):
 
     def create_state_machine(self, services):
 
@@ -101,14 +103,14 @@ class Multipagepdfa2IStack(core.Stack):
             "$.extension", "jpg"), choice_pass)
 
         # Creates the Step Functions
-        multipagepdfa2i_sf = aws_stepfunctions.StateMachine(
+        pdfparse_sf = aws_stepfunctions.StateMachine(
             scope=self,
-            id="multipagepdfa2i_stepfunction",
-            state_machine_name="multipagepdfa2i_stepfunction",
+            id="pdfparse_stepfunction",
+            state_machine_name="pdfparse_stepfunction",
             definition=pdf_or_image_choice.afterwards().next(process_map).next(task_wrapup)
         )
 
-        return multipagepdfa2i_sf
+        return pdfparse_sf
 
     def configure_dynamo_table(self, table_name, primary_key, sort_key):
         demo_table = aws_dynamodb.Table(
@@ -134,7 +136,7 @@ class Multipagepdfa2IStack(core.Stack):
         for name in names:
             lam_roles[name] = aws_iam.Role(
                 scope=self,
-                id="multipagepdfa2i_lam_role_" + name,
+                id="pdfparse_lam_role_" + name,
                 assumed_by=aws_iam.ServicePrincipal('lambda.amazonaws.com')
             )
 
@@ -255,10 +257,10 @@ class Multipagepdfa2IStack(core.Stack):
 
         lambda_functions["pngextract"] = aws_lambda.Function(
             scope=self,
-            id="multipagepdfa2i_pngextract",
-            function_name="multipagepdfa2i_pngextract",
+            id="pdfparse_pngextract",
+            function_name="pdfparse_pngextract",
             code=aws_lambda.Code.from_asset(
-                "./deploy_code/multipagepdfa2i_pngextract/multipagepdfa2i_pngextract.jar"),
+                "./deploy_code/pdfparse_pngextract/pdfparse_pngextract.jar"),
             handler="Lambda::handleRequest",
             runtime=aws_lambda.Runtime.JAVA_11,
             timeout=core.Duration.minutes(15),
@@ -268,10 +270,10 @@ class Multipagepdfa2IStack(core.Stack):
 
         lambda_functions["analyzepdf"] = aws_lambda.Function(
             scope=self,
-            id="multipagepdfa2i_analyzepdf",
-            function_name="multipagepdfa2i_analyzepdf",
+            id="pdfparse_analyzepdf",
+            function_name="pdfparse_analyzepdf",
             code=aws_lambda.Code.from_asset(
-                "./deploy_code/multipagepdfa2i_analyzepdf/"),
+                "./deploy_code/pdfparse_analyzepdf/"),
             handler="lambda_function.lambda_handler",
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             timeout=core.Duration.minutes(3),
@@ -288,10 +290,10 @@ class Multipagepdfa2IStack(core.Stack):
         for name in names:
             lambda_functions[name] = aws_lambda.Function(
                 scope=self,
-                id="multipagepdfa2i_" + name,
-                function_name="multipagepdfa2i_" + name,
+                id="pdfparse_" + name,
+                function_name="pdfparse_" + name,
                 code=aws_lambda.Code.from_asset(
-                    "./deploy_code/multipagepdfa2i_" + name + "/"),
+                    "./deploy_code/pdfparse_" + name + "/"),
                 handler="lambda_function.lambda_handler",
                 runtime=aws_lambda.Runtime.PYTHON_3_8,
                 timeout=core.Duration.minutes(15),
@@ -339,7 +341,7 @@ class Multipagepdfa2IStack(core.Stack):
         )
 
         aws_events.Rule(self,
-                        "multipadepdfa2i_HumanReviewComplete",
+                        "pdfparse_HumanReviewComplete",
                         event_pattern=human_review_event_pattern,
                         targets=[human_complete_target]
                         )
@@ -348,19 +350,19 @@ class Multipagepdfa2IStack(core.Stack):
         services = {}
         # S3 bucket
         services["main_s3_bucket"] = aws_s3.Bucket(
-            self, "multipagepdfa2i", removal_policy=core.RemovalPolicy.DESTROY)
+            self, "pdfparse", removal_policy=core.RemovalPolicy.DESTROY)
         self.configure_dynamo_table(
-            "multia2ipdf_callback", "jobid", "callback_token")
+            "pdfparse_callback", "jobid", "callback_token")
 
         services["sf_sqs"] = aws_sqs.Queue(
-            self, "multipagepdfa2i_sf_sqs",
-            queue_name="multipagepdfa2i_sf_sqs",
+            self, "pdfparse_sf_sqs",
+            queue_name="pdfparse_sf_sqs",
             visibility_timeout=core.Duration.minutes(5)
         )
 
         services["textract_sqs"] = aws_sqs.Queue(
-            self, "multipagepdfa2i_textract_sqs",
-            queue_name="multipagepdfa2i_textract_sqs",
+            self, "pdfparse_textract_sqs",
+            queue_name="pdfparse_textract_sqs",
             visibility_timeout=core.Duration.minutes(3)
         )
 
@@ -372,10 +374,10 @@ class Multipagepdfa2IStack(core.Stack):
         # need to creak kick off here so we can pass the state machine arn...
         services["lambda"]["kickoff"] = aws_lambda.Function(
             scope=self,
-            id="multipagepdfa2i_kickoff",
-            function_name="multipagepdfa2i_kickoff",
+            id="pdfparse_kickoff",
+            function_name="pdfparse_kickoff",
             code=aws_lambda.Code.from_asset(
-                "./deploy_code/multipagepdfa2i_kickoff/"),
+                "./deploy_code/pdfparse_kickoff/"),
             handler="lambda_function.lambda_handler",
             runtime=aws_lambda.Runtime.PYTHON_3_8,
             timeout=core.Duration.minutes(5),

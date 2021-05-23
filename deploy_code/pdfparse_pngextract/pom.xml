@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.amazon.textract.solutions</groupId>
-    <artifactId>multipagepdfa2i_pngextract</artifactId>
+    <artifactId>pdfparse_pngextract</artifactId>
     <version>1.0</version>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-textract -->
@@ -88,7 +88,7 @@
                 <version>3.2.1</version>
                 <configuration>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
-                    <finalName>multipagepdfa2i_pngextract</finalName>
+                    <finalName>pdfparse_pngextract</finalName>
                     <outputDirectory>${project.basedir}</outputDirectory>
                 </configuration>
                 <executions>

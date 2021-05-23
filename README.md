@@ -34,7 +34,7 @@ cdk deploy
 
 7. Create a human review workflow: https://console.aws.amazon.com/a2i/home?region=us-east-1#/human-review-workflows
 
-8. Open the file multipagepdfa2i/multipagepdfa2i_stack.py. Update line 23 with the ARN of the human review workflow.
+8. Open the file pdfparse/pdfparse_stack.py. Update line 23 with the ARN of the human review workflow.
 
 SAGEMAKER_WORKFLOW_AUGMENTED_AI_ARN_EV = ""
 9. Run "cdk deploy" to update the solution with human review workflow arn.

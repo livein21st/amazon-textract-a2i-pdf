@@ -25,7 +25,7 @@ with open("README.md") as fp:
 
 
 setuptools.setup(
-    name="multipagepdfa2i",
+    name="pdfparse",
     version="0.0.1",
 
     description="An empty CDK Python app",
@@ -34,8 +34,8 @@ setuptools.setup(
 
     author="author",
 
-    package_dir={"": "multipagepdfa2i"},
-    packages=setuptools.find_packages(where="multipagepdfa2i"),
+    package_dir={"": "pdfparse"},
+    packages=setuptools.find_packages(where="pdfparse"),
 
     install_requires=[
         "aws-cdk.core==1.52.1",
