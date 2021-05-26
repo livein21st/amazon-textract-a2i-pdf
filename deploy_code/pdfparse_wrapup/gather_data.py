@@ -37,13 +37,6 @@ def does_exist(bucket, key):
         return True
 
 
-def write_data_to_bucket(payload, name, csv):
-    dest = "wip/" + payload["id"] + "/csv/" + name.replace(".png", ".csv")
-    s3 = boto3.resource('s3')
-    s3.Object(payload["bucket"], dest).put(Body=csv)
-    return dest
-
-
 def get_data_from_bucket(bucket, key):
     client = boto3.client('s3')
     response = client.get_object(
