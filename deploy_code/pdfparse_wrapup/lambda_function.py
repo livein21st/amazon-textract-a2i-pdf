@@ -37,6 +37,17 @@ def write_csv_to_s3(csv, payload, original_uplolad_key):
     return response
 
 
+def write_json_to_s3(csv, payload, original_uplolad_key):
+    client = boto3.client('s3')
+    response = client.put_object(
+        Body=csv,
+        Bucket=payload["bucket"],
+        Key="complete/" + original_uplolad_key +
+            "-" + payload["id"] + "/json"+"/kv_output.json"
+    )
+    return response
+
+
 def try_to_clear_out_humanreview_prefix(payload):
     try:
         return "done"
@@ -102,7 +113,7 @@ def lambda_handler(event, context):
 
         # output to s3
         try:
-            write_response = write_csv_to_s3(
+            write_response = write_json_to_s3(
                 data, payload, payload["key"].replace("/", "-"))
             logger.info("INTERNAL_LOGGING: response from writing s3 data:" +
                         json.dumps(write_response, indent=3, default=str))

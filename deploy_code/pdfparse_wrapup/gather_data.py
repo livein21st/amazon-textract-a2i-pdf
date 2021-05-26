@@ -27,7 +27,7 @@ import logging
 from botocore.utils import merge_dicts
 
 
-def does_exsist(bucket, key):
+def does_exist(bucket, key):
     s3 = boto3.resource('s3')
     try:
         s3.Object(bucket, key).load()
@@ -53,12 +53,6 @@ def get_data_from_bucket(bucket, key):
     return json.load(response["Body"])
 
 
-def get_kvm(dict):
-
-    curated_kvm = ""
-
-    return curated_kvm
-
 # Create JSON
 
 
@@ -70,7 +64,7 @@ def create_json(base_image_keys, payload):
 
     try:
         for base_key in base_image_keys:
-            if does_exsist(payload["bucket"], base_key + "/ai/output.json") and does_exsist(payload["bucket"], base_key + "/human/output.json"):
+            if does_exist(payload["bucket"], base_key + "/ai/output.json") and does_exist(payload["bucket"], base_key + "/human/output.json"):
                 temp_ai_data = get_data_from_bucket(
                     payload["bucket"], base_key + "/ai/output.json")
                 temp_human_data = get_data_from_bucket(
@@ -118,14 +112,14 @@ def curate_data(base_image_keys, payload):
 
             csv_data += page_number + ",-,-" + "\n"
 
-            if does_exsist(payload["bucket"], base_key + "/ai/output.json"):
+            if does_exist(payload["bucket"], base_key + "/ai/output.json"):
                 temp_data = get_data_from_bucket(
                     payload["bucket"], base_key + "/ai/output.json")
                 logger.info(
                     "INTERNAL_LOGGING: ai_output:" + json.dumps(temp_data))
                 csv_data += create_csv(temp_data, "ai")
 
-            if does_exsist(payload["bucket"], base_key + "/human/output.json"):
+            if does_exist(payload["bucket"], base_key + "/human/output.json"):
                 temp_data = get_data_from_bucket(
                     payload["bucket"], base_key + "/human/output.json")
                 logger.info(
@@ -197,6 +191,7 @@ def gather_and_combine_data(event):
     keys, payload = get_all_possible_files(event)
     base_image_keys = get_base_image_keys(payload["bucket"], keys)
     base_image_keys.sort()
-    csv_data = curate_data(base_image_keys, payload)
     jsonData = create_json(base_image_keys, payload)
-    return csv_data, payload
+    #csv_data = curate_data(base_image_keys, payload)
+
+    return jsonData, payload

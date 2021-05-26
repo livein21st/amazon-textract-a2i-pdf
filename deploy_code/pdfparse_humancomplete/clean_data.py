@@ -18,6 +18,7 @@
 
 import json
 
+
 def get_child(relation, line, word):
     text = ""
     for id in relation["ids"]:
@@ -29,6 +30,7 @@ def get_child(relation, line, word):
         text = text[1:]
     return text
 
+
 def extract_value(value, kv, line, word):
     for val in value:
         try:
@@ -39,6 +41,7 @@ def extract_value(value, kv, line, word):
             return text
         except:
             return "UNKNOWN"
+
 
 def line_up_ids(kv, line, word):
     kv_list = []
@@ -54,10 +57,10 @@ def line_up_ids(kv, line, word):
                 if relation["type"] == "CHILD":
                     text = get_child(relation, line, word)
             kv_list.append({
-                "value": extract_value(value, kv, line, word),
-                "key": text               
+                text: extract_value(value, kv, line, word),
             })
     return kv_list
+
 
 def get_key_value_set(data):
     dict_key_value = {}
@@ -69,6 +72,7 @@ def get_key_value_set(data):
             }
     return dict_key_value
 
+
 def get_word_and_line(data):
     dict_word = {}
     dict_line = {}
@@ -78,6 +82,7 @@ def get_word_and_line(data):
         if block["blockType"] == "LINE":
             dict_line[block["id"]] = block["text"]
     return dict_word, dict_line
+
 
 def create_human_kv_list(payload):
     data = payload["response"]["humanAnswers"][0]["answerContent"]["AWS/Textract/AnalyzeDocument/Forms/V1"]

@@ -59,8 +59,7 @@ def line_up_ids(kv, line, word):
                     text = get_child(relation, line, word)
             kv_list.append({
                 # key: value
-                "value": extract_value(value, kv, line, word),
-                "key": text
+                text: extract_value(value, kv, line, word),
             })
     return kv_list
 
