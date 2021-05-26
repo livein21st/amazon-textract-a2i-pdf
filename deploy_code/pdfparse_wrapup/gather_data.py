@@ -60,7 +60,8 @@ def create_json(base_image_keys, payload):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
-    merge_dict = []
+    merge_list = []
+    single_dict = {}
 
     try:
         for base_key in base_image_keys:
@@ -71,12 +72,15 @@ def create_json(base_image_keys, payload):
                     payload["bucket"], base_key + "/human/output.json")
                 temp_ai_data.extend(temp_human_data)
                 for dict in temp_ai_data:
-                    if dict not in merge_dict:
-                        merge_dict.append(dict)
+                    if dict not in merge_list:
+                        merge_list.append(dict)
 
         logger.info("INTERNAL_LOGGING: ai_human_output:" +
-                    json.dumps(merge_dict))
-        jsonOutput = json.dumps(merge_dict)
+                    json.dumps(merge_list))
+
+        for dict in merge_list:
+            single_dict.update(dict)
+        jsonOutput = json.dumps(single_dict)
         logger.info("INTERNAL_LOGGING: json" + jsonOutput)
 
         return jsonOutput
