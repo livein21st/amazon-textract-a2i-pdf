@@ -22,6 +22,10 @@ import boto3
 import botocore
 import os
 import logging
+import logging
+
+from botocore.utils import merge_dicts
+
 
 def does_exsist(bucket, key):
     s3 = boto3.resource('s3')
@@ -32,11 +36,13 @@ def does_exsist(bucket, key):
     else:
         return True
 
+
 def write_data_to_bucket(payload, name, csv):
     dest = "wip/" + payload["id"] + "/csv/" + name.replace(".png", ".csv")
     s3 = boto3.resource('s3')
     s3.Object(payload["bucket"], dest).put(Body=csv)
     return dest
+
 
 def get_data_from_bucket(bucket, key):
     client = boto3.client('s3')
@@ -46,37 +52,112 @@ def get_data_from_bucket(bucket, key):
     )
     return json.load(response["Body"])
 
+
+def get_kvm(dict):
+
+    curated_kvm = ""
+
+    return curated_kvm
+
+# Create JSON
+
+
+def create_json(base_image_keys, payload):
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    merge_dict = []
+
+    try:
+        for base_key in base_image_keys:
+            if does_exsist(payload["bucket"], base_key + "/ai/output.json") and does_exsist(payload["bucket"], base_key + "/human/output.json"):
+                temp_ai_data = get_data_from_bucket(
+                    payload["bucket"], base_key + "/ai/output.json")
+                temp_human_data = get_data_from_bucket(
+                    payload["bucket"], base_key + "/human/output.json")
+                temp_ai_data.extend(temp_human_data)
+                for dict in temp_ai_data:
+                    if dict not in merge_dict:
+                        merge_dict.append(dict)
+
+        logger.info("INTERNAL_LOGGING: ai_human_output:" +
+                    json.dumps(merge_dict))
+        jsonOutput = json.dumps(merge_dict)
+        logger.info("INTERNAL_LOGGING: json" + jsonOutput)
+
+        return jsonOutput
+
+    except:
+        logger.info(
+            "INTERNAL_ERROR: Error on create_json()")
+        raise
+
+
 def create_csv(kv_list, give_type):
-    output = ""
+    csv_output = ""
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
     for item in kv_list:
-        output += item["key"].replace(",", "") + "," + item["value"].replace(",", "") + "," + give_type + "\n"
-    return output
+        csv_output += item["key"].replace(",", "") + "," + \
+            item["value"].replace(",", "") + "," + give_type + "\n"
+    return csv_output
+
 
 def curate_data(base_image_keys, payload):
-    data = ""
-    for base_key in base_image_keys:
-        page_number = base_key[base_key.rfind("/")+1:]
-        page_number = "page " + str(int(page_number[:page_number.find(".")]) + 1)
-        
-        data += page_number + ",-,-" +  "\n"
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
 
-        if does_exsist(payload["bucket"], base_key + "/ai/output.json"):
-            temp_data = get_data_from_bucket(payload["bucket"], base_key + "/ai/output.json")
-            data += create_csv(temp_data, "ai")
-        if does_exsist(payload["bucket"], base_key + "/human/output.json"):
-            temp_data = get_data_from_bucket(payload["bucket"], base_key + "/human/output.json")
-            data += create_csv(temp_data, "human")
+    csv_data = ""
 
-    return data
+    try:
+        for base_key in base_image_keys:
+            page_number = base_key[base_key.rfind("/")+1:]
+            page_number = "page " + \
+                str(int(page_number[:page_number.find(".")]) + 1)
+
+            csv_data += page_number + ",-,-" + "\n"
+
+            if does_exsist(payload["bucket"], base_key + "/ai/output.json"):
+                temp_data = get_data_from_bucket(
+                    payload["bucket"], base_key + "/ai/output.json")
+                logger.info(
+                    "INTERNAL_LOGGING: ai_output:" + json.dumps(temp_data))
+                csv_data += create_csv(temp_data, "ai")
+
+            if does_exsist(payload["bucket"], base_key + "/human/output.json"):
+                temp_data = get_data_from_bucket(
+                    payload["bucket"], base_key + "/human/output.json")
+                logger.info(
+                    "INTERNAL_LOGGING: human_output:" + json.dumps(temp_data))
+                csv_data += create_csv(temp_data, "human")
+
+        return csv_data
+    except:
+        logger.info(
+            "INTERNAL_ERROR: Error on curate_data()")
+        raise
+
 
 def get_base_image_keys(bucket, keys):
     temp = []
-    for key in keys:
-        if "/human/output.json" in key:
-            temp.append(key[:key.rfind("/human/output.json")])
-        if "/ai/output.json" in key:
-            temp.append(key[:key.rfind("/ai/output.json")])
-    return list(dict.fromkeys(temp))
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    try:
+        for key in keys:
+            if "/human/output.json" in key:
+                temp.append(key[:key.rfind("/human/output.json")])
+            if "/ai/output.json" in key:
+                temp.append(key[:key.rfind("/ai/output.json")])
+        logger.info("INTERNAL_LOGGING: base_image_keys:" +
+                    json.dumps(list(dict.fromkeys(temp)), indent=3, default=str))
+        return list(dict.fromkeys(temp))
+    except:
+        logger.info(
+            "INTERNAL_ERROR: Error when running get_base_image_keys()")
+        raise
+
 
 def get_all_possible_files(event):
     files = []
@@ -111,10 +192,11 @@ def get_all_possible_files(event):
 
     return files, payload
 
+
 def gather_and_combine_data(event):
     keys, payload = get_all_possible_files(event)
     base_image_keys = get_base_image_keys(payload["bucket"], keys)
     base_image_keys.sort()
-    data = curate_data(base_image_keys, payload)
-    return data, payload
-
+    csv_data = curate_data(base_image_keys, payload)
+    jsonData = create_json(base_image_keys, payload)
+    return csv_data, payload

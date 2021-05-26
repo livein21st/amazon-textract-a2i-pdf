@@ -133,9 +133,11 @@ def lambda_handler(event, context):
             try:
                 logger.info(
                     "INTERNAL_LOGGING: Attempting extract_data(response)")
-                kv_list = extract_data(response)
+                kv_list, table = extract_data(response)
                 logger.info("INTERNAL_LOGGING: kv_list:" +
                             json.dumps(kv_list, indent=3, default=str))
+                logger.info("INTERNAL_LOGGING: table:" +
+                            json.dumps(table, indent=3, default=str))
             except:
                 logger.info(
                     "INTERNAL_ERROR: Ran into error running extract_data(response)")
