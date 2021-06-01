@@ -46,6 +46,16 @@ def dump_task_token_in_dynamodb(event):
     return response
 
 
+def write_ai_table_response_to_bucket(event, data):
+    client = boto3.client('s3')
+    response = client.put_object(
+        Body=json.dumps(data),
+        Bucket=event["bucket"],
+        Key=event["s3_location_csv"]
+    )
+    return response
+
+
 def write_ai_response_to_bucket(event, data):
     client = boto3.client('s3')
     response = client.put_object(
@@ -107,12 +117,15 @@ def lambda_handler(event, context):
                 body["process_key"] = body["key"]
                 body["human_loop_id"] = body["id"] + "i0"
                 body["s3_location"] = "wip/" + \
-                    body["id"] + "/0.png/ai/output.json"
+                    body["id"] + "/0.png/ai/kv_pairs.json"
+                body["s3_location_csv"] = "wip/" + \
+                    body["id"] + "/0.png/ai/table.json"
             else:
                 body["process_key"] = "wip/" + body["id"] + \
                     "/" + body["wip_key"] + ".png"
                 body["human_loop_id"] = body["id"] + "i" + body["wip_key"]
-                body["s3_location"] = body["process_key"] + "/ai/output.json"
+                body["s3_location"] = body["process_key"] + "/ai/kv_pairs.json"
+                body["s3_location_csv"] = body["process_key"] + "/ai/table.json"
 
             logger.info("INTERNAL_LOGGING: body:" +
                         json.dumps(body, indent=3, default=str))
@@ -141,6 +154,15 @@ def lambda_handler(event, context):
             except:
                 logger.info(
                     "INTERNAL_ERROR: Ran into error running extract_data(response)")
+                raise
+
+            try:
+                logger.info(
+                    "INTERNAL_LOGGING: Attempting write_table_to_bucket(body, table)")
+                write_ai_table_response_to_bucket(body, table)
+            except:
+                logger.info(
+                    "INTERNAL_ERROR: Ran into error running write_table_to_bucket(body, table)")
                 raise
 
             try:

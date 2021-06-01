@@ -98,21 +98,24 @@ def get_text(result, blocks_map):
 
 
 def generate_table_csv(table_result, blocks_map, table_index):
-    rows = get_rows_columns_map(table_result, blocks_map)
 
-    table_id = 'Table_' + str(table_index)
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    rows = get_rows_columns_map(table_result, blocks_map)
+    logger.info("INTERNAL_LOGGING: rows:" +
+                json.dumps(rows, indent=3, default=str))
 
     # get cells.
-    csv = 'Table: {0}\n\n'.format(table_id)
 
+    json_object = {}
     for row_index, cols in rows.items():
-
         for col_index, text in cols.items():
-            csv += '{}'.format(text) + ","
-        csv += '\n'
-
-    csv += '\n\n\n'
-    return csv
+            if len(cols) >= 3:
+                json_object = rows
+    logger.info("INTERNAL_LOGGING: JsonString:" +
+                json.dumps(json_object, indent=3, default=str))
+    return json_object
 
 
 def get_table(data):
@@ -130,11 +133,10 @@ def get_table(data):
         if len(table_blocks) <= 0:
             return "<b> TABLE NOT FOUND </b>"
 
-        csv = ''
+        table_data = {}
         for index, table in enumerate(table_blocks):
-            csv += generate_table_csv(table, blocks_map, index + 1)
-            csv += '\n\n'
-        return csv
+            table_data = generate_table_csv(table, blocks_map, index + 1)
+        return table_data
 
     except:
         logger.info(
@@ -169,6 +171,6 @@ def extract_data(event):
     dict_word, dict_line = get_word_and_line(data)
     dict_key_value = get_key_value_set(data)
     table = get_table(data)
-
     kv_list = line_up_ids(dict_key_value, dict_line, dict_word)
+
     return kv_list, table

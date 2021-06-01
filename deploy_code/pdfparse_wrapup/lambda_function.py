@@ -32,18 +32,18 @@ def write_csv_to_s3(csv, payload, original_uplolad_key):
         Body=csv,
         Bucket=payload["bucket"],
         Key="complete/" + original_uplolad_key +
-            "-" + payload["id"] + "/csv"+"/output.csv"
+            "-" + payload["id"] + "/table.json"
     )
     return response
 
 
-def write_json_to_s3(csv, payload, original_uplolad_key):
+def write_json_to_s3(jString, payload, original_uplolad_key):
     client = boto3.client('s3')
     response = client.put_object(
-        Body=csv,
+        Body=jString,
         Bucket=payload["bucket"],
         Key="complete/" + original_uplolad_key +
-            "-" + payload["id"] + "/json"+"/kv_output.json"
+            "-" + payload["id"] + "/json"+"/kv_pairs.json"
     )
     return response
 

@@ -72,7 +72,7 @@ def create_final_dest(id, key):
         final_dest = "wip/" + id + "/0.png"
     else:
         final_dest = key
-    return final_dest + "/human/output.json"
+    return final_dest + "/human/kv_pairs.json"
 
 
 def create_payload(event):

@@ -22,8 +22,7 @@ import boto3
 import botocore
 import os
 import logging
-import logging
-
+import csv
 from botocore.utils import merge_dicts
 
 
@@ -47,8 +46,6 @@ def get_data_from_bucket(bucket, key):
 
 
 # Create JSON
-
-
 def create_json(base_image_keys, payload):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
@@ -58,23 +55,30 @@ def create_json(base_image_keys, payload):
 
     try:
         for base_key in base_image_keys:
-            if does_exist(payload["bucket"], base_key + "/ai/output.json") and does_exist(payload["bucket"], base_key + "/human/output.json"):
+            if does_exist(payload["bucket"], base_key + "/ai/kv_pairs.json") and does_exist(payload["bucket"], base_key + "/human/kv_pairs.json"):
                 temp_ai_data = get_data_from_bucket(
-                    payload["bucket"], base_key + "/ai/output.json")
+                    payload["bucket"], base_key + "/ai/kv_pairs.json")
                 temp_human_data = get_data_from_bucket(
-                    payload["bucket"], base_key + "/human/output.json")
+                    payload["bucket"], base_key + "/human/kv_pairs.json")
                 temp_ai_data.extend(temp_human_data)
                 for dict in temp_ai_data:
                     if dict not in merge_list:
                         merge_list.append(dict)
 
-        logger.info("INTERNAL_LOGGING: ai_human_output:" +
+        logger.info("INTERNAL_LOGGING: ai_human_mergelist:" +
                     json.dumps(merge_list))
 
         for dict in merge_list:
             single_dict.update(dict)
+
         jsonOutput = json.dumps(single_dict)
-        logger.info("INTERNAL_LOGGING: json" + jsonOutput)
+        logger.info("INTERNAL_LOGGING: singleDict" + jsonOutput)
+
+        # for base_key in base_image_keys:
+        #    if does_exist(payload["bucket"], base_key + "/ai/table.json"):
+        #        temp_ai_table_data = get_data_from_bucket(
+        #            payload["bucket"], base_key + "/ai/table.json")
+        #        logger.info("INTERNAL_LOGGING: json" + temp_ai_table_data)
 
         return jsonOutput
 
@@ -109,16 +113,16 @@ def curate_data(base_image_keys, payload):
 
             csv_data += page_number + ",-,-" + "\n"
 
-            if does_exist(payload["bucket"], base_key + "/ai/output.json"):
+            if does_exist(payload["bucket"], base_key + "/ai/kv_pairs.json"):
                 temp_data = get_data_from_bucket(
-                    payload["bucket"], base_key + "/ai/output.json")
+                    payload["bucket"], base_key + "/ai/kv_pairs.json")
                 logger.info(
                     "INTERNAL_LOGGING: ai_output:" + json.dumps(temp_data))
                 csv_data += create_csv(temp_data, "ai")
 
-            if does_exist(payload["bucket"], base_key + "/human/output.json"):
+            if does_exist(payload["bucket"], base_key + "/human/kv_pairs.json"):
                 temp_data = get_data_from_bucket(
-                    payload["bucket"], base_key + "/human/output.json")
+                    payload["bucket"], base_key + "/human/kv_pairs.json")
                 logger.info(
                     "INTERNAL_LOGGING: human_output:" + json.dumps(temp_data))
                 csv_data += create_csv(temp_data, "human")
@@ -137,10 +141,12 @@ def get_base_image_keys(bucket, keys):
 
     try:
         for key in keys:
-            if "/human/output.json" in key:
-                temp.append(key[:key.rfind("/human/output.json")])
-            if "/ai/output.json" in key:
-                temp.append(key[:key.rfind("/ai/output.json")])
+            if "/human/kv_pairs.json" in key:
+                temp.append(key[:key.rfind("/human/kv_pairs.json")])
+            if "/ai/kv_pairs.json" in key:
+                temp.append(key[:key.rfind("/ai/kv_pairs.json")])
+            if "/ai/table.json" in key:
+                temp.append(key[:key.rfind("/ai/table.json")])
         logger.info("INTERNAL_LOGGING: base_image_keys:" +
                     json.dumps(list(dict.fromkeys(temp)), indent=3, default=str))
         return list(dict.fromkeys(temp))
@@ -151,8 +157,12 @@ def get_base_image_keys(bucket, keys):
 
 
 def get_all_possible_files(event):
+
     files = []
     payload = {}
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
 
     payload["bucket"] = event["bucket"]
     payload["id"] = event["id"]
@@ -164,8 +174,9 @@ def get_all_possible_files(event):
         else:
             base_key = "wip/" + payload["id"] + "/" + item + ".png"
 
-        possible_ai_output_key = base_key + "/ai/output.json"
-        possible_human_output_key = base_key + "/human/output.json"
+        possible_ai_output_key = base_key + "/ai/kv_pairs.json"
+        possible_human_output_key = base_key + "/human/kv_pairs.json"
+        possible_ai_output_table = base_key + "/ai/table.json"
 
         s3 = boto3.resource('s3')
 
@@ -181,6 +192,15 @@ def get_all_possible_files(event):
         except botocore.exceptions.ClientError as e:
             pass
 
+        try:
+            s3.Object(event["bucket"], possible_ai_output_table).load()
+            files.append(possible_ai_output_table)
+            logger.info("INTERNAL_LOGGING: files:" +
+                        json.dumps(list(dict.fromkeys(files)), indent=3, default=str))
+
+        except botocore.exceptions.ClientError as e:
+            pass
+
     return files, payload
 
 
@@ -189,6 +209,6 @@ def gather_and_combine_data(event):
     base_image_keys = get_base_image_keys(payload["bucket"], keys)
     base_image_keys.sort()
     jsonData = create_json(base_image_keys, payload)
-    #csv_data = curate_data(base_image_keys, payload)
+    # csv_data = curate_data(base_image_keys, payload)
 
     return jsonData, payload
