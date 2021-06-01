@@ -60,6 +60,8 @@ def create_json(base_image_keys, payload):
                     payload["bucket"], base_key + "/ai/kv_pairs.json")
                 temp_human_data = get_data_from_bucket(
                     payload["bucket"], base_key + "/human/kv_pairs.json")
+
+                # Merge Lists
                 temp_ai_data.extend(temp_human_data)
                 for dict in temp_ai_data:
                     if dict not in merge_list:
@@ -68,6 +70,7 @@ def create_json(base_image_keys, payload):
         logger.info("INTERNAL_LOGGING: ai_human_mergelist:" +
                     json.dumps(merge_list))
 
+        # Create Single dictionary
         for dict in merge_list:
             single_dict.update(dict)
 
