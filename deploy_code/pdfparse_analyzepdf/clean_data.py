@@ -97,7 +97,7 @@ def get_text(result, blocks_map):
     return text
 
 
-def generate_table_csv(table_result, blocks_map, table_index):
+def generate_table(table_result, blocks_map, table_index):
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
@@ -135,7 +135,7 @@ def get_table(data):
 
         table_data = {}
         for index, table in enumerate(table_blocks):
-            table_data = generate_table_csv(table, blocks_map, index + 1)
+            table_data = generate_table(table, blocks_map, index + 1)
         return table_data
 
     except:

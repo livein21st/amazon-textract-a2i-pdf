@@ -26,7 +26,7 @@ import os
 import logging
 
 
-def write_csv_to_s3(csv, payload, original_uplolad_key):
+def write_table_to_s3(csv, payload, original_uplolad_key):
     client = boto3.client('s3')
     response = client.put_object(
         Body=csv,
@@ -37,7 +37,7 @@ def write_csv_to_s3(csv, payload, original_uplolad_key):
     return response
 
 
-def write_json_to_s3(jString, payload, original_uplolad_key):
+def write_kv_to_s3(jString, payload, original_uplolad_key):
     client = boto3.client('s3')
     response = client.put_object(
         Body=jString,
@@ -113,7 +113,7 @@ def lambda_handler(event, context):
 
         # output to s3
         try:
-            write_response = write_json_to_s3(
+            write_response = write_kv_to_s3(
                 data, payload, payload["key"].replace("/", "-"))
             logger.info("INTERNAL_LOGGING: response from writing s3 data:" +
                         json.dumps(write_response, indent=3, default=str))
