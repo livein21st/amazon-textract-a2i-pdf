@@ -106,8 +106,7 @@ def generate_table(table_result, blocks_map, table_index):
     logger.info("INTERNAL_LOGGING: rows:" +
                 json.dumps(rows, indent=3, default=str))
 
-    # get cells.
-
+    # Discard table with column<3
     json_object = {}
     for row_index, cols in rows.items():
         for col_index, text in cols.items():

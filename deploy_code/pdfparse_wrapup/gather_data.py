@@ -52,6 +52,7 @@ def create_json(base_image_keys, payload):
 
     merge_list = []
     single_dict = {}
+    table = []
 
     try:
         for base_key in base_image_keys:
@@ -62,9 +63,10 @@ def create_json(base_image_keys, payload):
                     payload["bucket"], base_key + "/human/kv_pairs.json")
                 temp_ai_table_data = get_data_from_bucket(
                     payload["bucket"], base_key + "/ai/table.json")
-
-                logger.info("INTERNAL_LOGGING: table" +
-                            json.dumps(temp_ai_table_data))
+                for rows in temp_ai_table_data.values():
+                    table.append(rows)
+                    logger.info("INTERNAL_LOGGING: table" +
+                                json.dumps(table))
 
                 # Merge Lists
                 temp_ai_data.extend(temp_human_data)
@@ -76,15 +78,10 @@ def create_json(base_image_keys, payload):
         logger.info("INTERNAL_LOGGING: ai_human_mergelist:" +
                     json.dumps(merge_list))
 
-        # for base_key in base_image_keys:
-        #    if does_exist(payload["bucket"], base_key + "/ai/table.json"):
-        #        temp_ai_table_data = get_data_from_bucket(
-        #            payload["bucket"], base_key + "/ai/table.json")
-
         # Create Single dictionary
         for dict in merge_list:
             single_dict.update(dict)
-
+        single_dict['table'] = table
         jsonOutput = json.dumps(single_dict)
         logger.info("INTERNAL_LOGGING: singleDict" + jsonOutput)
 
