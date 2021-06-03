@@ -20,9 +20,7 @@
 import json
 import boto3
 import botocore
-import os
 import logging
-import csv
 from botocore.utils import merge_dicts
 
 
@@ -45,44 +43,50 @@ def get_data_from_bucket(bucket, key):
     return json.load(response["Body"])
 
 
+def consolidate_data(kv_pair, table):
+
+    single_dict = {}
+
+    # create single dict of kv pairs
+    for dict in kv_pair:
+        single_dict.update(dict)
+
+    # Add table data into dict
+    single_dict['table'] = table
+
+    return json.dumps(single_dict)
+
+
 # Create JSON
 def create_json(base_image_keys, payload):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
-    merge_list = []
-    single_dict = {}
+    merge_ai_human_kv_pairs = []
     table = []
 
     try:
         for base_key in base_image_keys:
-            if does_exist(payload["bucket"], base_key + "/ai/kv_pairs.json") and does_exist(payload["bucket"], base_key + "/human/kv_pairs.json") and does_exist(payload["bucket"], base_key + "/ai/table.json"):
+            if does_exist(payload["bucket"], base_key + "/ai/kv_pairs.json") and does_exist(payload["bucket"], base_key + "/human/kv_pairs.json"):
                 temp_ai_data = get_data_from_bucket(
                     payload["bucket"], base_key + "/ai/kv_pairs.json")
                 temp_human_data = get_data_from_bucket(
                     payload["bucket"], base_key + "/human/kv_pairs.json")
+
+                # Merge Lists
+                temp_ai_data.extend(temp_human_data)
+                for dict in temp_ai_data:
+                    if dict not in merge_ai_human_kv_pairs:
+                        merge_ai_human_kv_pairs.append(dict)
+
+            if does_exist(payload["bucket"], base_key + "/ai/table.json"):
                 temp_ai_table_data = get_data_from_bucket(
                     payload["bucket"], base_key + "/ai/table.json")
                 for rows in temp_ai_table_data.values():
                     table.append(rows)
-                    logger.info("INTERNAL_LOGGING: table" +
-                                json.dumps(table))
-
-                # Merge Lists
-                temp_ai_data.extend(temp_human_data)
-                # temp_ai_data.extend(temp_ai_table_data)
-                for dict in temp_ai_data:
-                    if dict not in merge_list:
-                        merge_list.append(dict)
-
-        logger.info("INTERNAL_LOGGING: ai_human_mergelist:" +
-                    json.dumps(merge_list))
 
         # Create Single dictionary
-        for dict in merge_list:
-            single_dict.update(dict)
-        single_dict['table'] = table
-        jsonOutput = json.dumps(single_dict)
+        jsonOutput = consolidate_data(merge_ai_human_kv_pairs, table)
         logger.info("INTERNAL_LOGGING: singleDict" + jsonOutput)
 
         return jsonOutput
