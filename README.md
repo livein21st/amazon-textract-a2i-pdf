@@ -34,10 +34,13 @@ cdk deploy
 
 7. Create a human review workflow: https://console.aws.amazon.com/a2i/home?region=us-east-1#/human-review-workflows
 
-8. Open the file config.py file in the project root folder. Update the ARN of the human review workflow inside credential.
+8. Create a file config.py file in the project root folder. Paste the below code with the ARN of the human review workflow.
     For example:
     ```python
-    hr-workflow-arn = "COPY_HUMAN_REVIEW_WORKFLOW_ARN_HERE"
+    #!/usr/bin/env python
+    credentials = {
+         hr-workflow-arn = "COPY_HUMAN_REVIEW_WORKFLOW_ARN_HERE"
+    }
     ```
 9. Run "cdk deploy" to update the solution with human review workflow arn.
 
