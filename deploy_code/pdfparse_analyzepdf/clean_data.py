@@ -124,15 +124,17 @@ def get_table(data):
     blocks = data["Blocks"]
     blocks_map = {}
     table_blocks = []
+    table_data = {}
     try:
         for block in blocks:
             blocks_map[block['Id']] = block
             if block['BlockType'] == "TABLE":
                 table_blocks.append(block)
         if len(table_blocks) <= 0:
-            return "<b> TABLE NOT FOUND </b>"
+            logger.info("INTERNAL_LOGGING:" +
+                        json.dumps("Table not found", indent=3, default=str))
+            return table_data
 
-        table_data = {}
         for index, table in enumerate(table_blocks):
             table_data = generate_table(table, blocks_map, index + 1)
         return table_data
