@@ -2,9 +2,9 @@
 
 ## Prerequisites
 
-1. Node.js
-2. Python
-3. AWS Command Line Interface (AWS CLI)—for instructions, see Installing the AWS CLI)
+1. Node.js: https://nodejs.org/en/download/
+2. Python: https://www.python.org/downloads/
+3. AWS Command Line Interface (AWS CLI)—for instructions, see Installing the AWS CLI: https://aws.amazon.com/cli/
 
 ## Deployment
 
@@ -16,9 +16,9 @@ npm install -g aws-cdk
 ```
 2. Download the repo to your local machine:
 ```
-git clone https://github.com/aws-samples/amazon-textract-a2i-pdf
+git clone https://github.com/livein21st/amazon-textract-a2i-pdf/tree/nirav_branch
 ```
-3. Go to the folder amazon-textract-a2i-pdf and enter the following:
+3. Go to the folder amazon-textract-a2i-pdf and enter the following command:
 ```
 pip install -r requirements.txt
 ```
@@ -44,7 +44,7 @@ cdk deploy
     ```
 9. Run "cdk deploy" to update the solution with human review workflow arn.
 
-10. Go S3 bucket console and open newly created bucket for the flow. (Bucket name should be: pdfparse-pdfparsexxxxxxxx-xxxxxxxxxxxxx)
+10. Go S3 bucket (console) and open newly created bucket for the flow. (Bucket name should be: pdfparse-pdfparsexxxxxxxx-xxxxxxxxxxxxx)
     - in the bucket to go permission tab and edit/update Cross-origin resource sharing (CORS) as follows.
     ```json
     [{
