@@ -32,9 +32,11 @@ cdk deploy
 ```
 6. Create a private team: https://docs.aws.amazon.com/sagemaker/latest/dg/sms-workforce-management.html
 
-7. Create a human review workflow: https://console.aws.amazon.com/a2i/home?region=us-east-1#/human-review-workflows
+7. Add team-member's email in the private workforce: Amazon SageMaker > Labeling workforces > "YOUR_PRIVATE_TEAM_NAME" > Workers > Add workers to Team
 
-8. Create a file config.py file in the project root folder. Paste the below code with the ARN of the human review workflow.
+8. Create a human review workflow: https://console.aws.amazon.com/a2i/home?region=us-east-1#/human-review-workflows
+
+9. Create a file config.py file in the project root folder. Paste the below code with the ARN of the human review workflow.
     For example:
     ```python
     #!/usr/bin/env python
@@ -42,9 +44,9 @@ cdk deploy
          hr-workflow-arn = "COPY_HUMAN_REVIEW_WORKFLOW_ARN_HERE"
     }
     ```
-9. Run "cdk deploy" to update the solution with human review workflow arn.
+10. Run "cdk deploy" to update the solution with human review workflow arn.
 
-10. Go S3 bucket (console) and open newly created bucket for the flow. (Bucket name should be: pdfparse-pdfparsexxxxxxxx-xxxxxxxxxxxxx)
+11. Go S3 bucket (console) and open newly created bucket for the flow. (Bucket name should be: pdfparse-pdfparsexxxxxxxx-xxxxxxxxxxxxx)
     - in the bucket to go permission tab and edit/update Cross-origin resource sharing (CORS) as follows.
     ```json
     [{
